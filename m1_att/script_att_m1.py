@@ -1,65 +1,86 @@
 import cv2
+import numpy as np
 
-# Script que abre um video em formato mp4, conta quantos quadros tem e salva a imagem do quadro do meio, imprimi
+# --- Seção de Criação de Vídeo ---
+# Configurações para a criação do vídeo (FPS, dimensões, nome do arquivo)
+fps_criacao = 20
+largura_criacao, altura_criacao = 320, 240
+nome_arquivo_video_criado = "video_atividade_m1.mp4"
 
-# trecho para criação do video
-fps = 20                            # quadros por segundo do vídeo
-largura_quadro, altura_quadro = 320, 240      # tamanho de cada quadro (largura, altura)
-
+# Define o codec para o vídeo (MP4V)
 fourcc = cv2.VideoWriter_fourcc(*"mp4v")
 
+# Inicializa o objeto para escrever o vídeo
 escritor = cv2.VideoWriter(
-    "video_atividade_m1.mp4",            # arquivo de saída
-    fourcc,                         # codec definido acima
-    fps,                            # taxa de quadros por segundo
-    (largura_v, altura_v),          # frameSize
+    nome_arquivo_video_criado,
+    fourcc,
+    fps_criacao,
+    (largura_criacao, altura_criacao),
 )
 
-n_quadros = 60                     # número de quadros
-for i in range(n_quadros):          
-    quadro = np.full((altura_quadro, largura_quadro, 3), 255, dtype=np.uint8)   # fundo branco
-    # x avança um pouco a cada quadro -> dá a sensação de movimento
-    x = int(30 + (largura_quadro - 60) * i / n_quadros)
-    
+# Loop para gerar e adicionar quadros ao vídeo
+num_quadros_criacao = 60
+for i in range(num_quadros_criacao):
+    # Cria um quadro branco
+    quadro = np.full((altura_criacao, largura_criacao, 3), 255, dtype=np.uint8)
+    # Calcula a posição X do círculo para criar um movimento
+    x_pos = int(30 + (largura_criacao - 60) * i / num_quadros_criacao)
+
+    # Desenha um círculo azul no quadro
     cv2.circle(
         quadro,
-        (x, altura_v // 2),         # center: (x que avança, meio da altura)
-        20,                       
-        (255, 0, 0),              # color BGR: azul
-        thickness=-1,               # preenchido
+        (x_pos, altura_criacao // 2),
+        20,
+        (255, 0, 0),
+        thickness=-1,
     )
-    escritor.write(quadro)          # grava este quadro no arquivo de vídeo
+    # Escreve o quadro no arquivo de vídeo
+    escritor.write(quadro)
 
-escritor.release()                  # fecha o arquivo
-print(f"Vídeo criado com {n_quadros} quadros.")
+# Libera o objeto escritor, finalizando a criação do vídeo
+escritor.release()
+print(f"Vídeo '{nome_arquivo_video_criado}' criado com {num_quadros_criacao} quadros.")
 
-#caminho para pegar o video na maquina e fazer a analise e corte
-caminho = "video_atividade_m1.mp4"
-cap = cv2.VideoCapture(caminho)
-quadros = []
+# --- Seção de Análise de Vídeo ---
+# Define o caminho do vídeo a ser analisado (pode ser o recém-criado ou um externo)
+caminho_video_analise = nome_arquivo_video_criado
+# Inicializa o objeto para capturar/ler o vídeo
+captura = cv2.VideoCapture(caminho_video_analise)
+quadros_lidos = []
 
-while True:
-    ret, quadro = cap.read()
-    if not ret:
-        break
-    quadros.append(quadro)
+# Verifica se o vídeo foi aberto corretamente
+if not captura.isOpened():
+    print(f"Erro: Não foi possível abrir o vídeo '{caminho_video_analise}'.")
+else:
+    # Lê todos os quadros do vídeo
+    while True:
+        ret, quadro_atual = captura.read()
+        if not ret:
+            break
+        quadros_lidos.append(quadro_atual)
 
+    # Exibe as propriedades do vídeo analisado
+    print("\nPropriedades do vídeo analisado:")
+    print(f"  FPS: {captura.get(cv2.CAP_PROP_FPS)}")
+    print(f"  Contagem de quadros: {int(captura.get(cv2.CAP_PROP_FRAME_COUNT))}")
 
-# propriedades do video
-print("Propriedades do vídeo:")
-print(f"  FPS: {cap.get(cv2.CAP_PROP_FPS)}")
-print(f"  Contagem de quadros: {int(cap.get(cv2.CAP_PROP_FRAME_COUNT))}")
+    # Libera o objeto de captura
+    captura.release()
 
-cap.release()
+    # Se quadros foram lidos, processa e exibe o quadro do meio
+    if quadros_lidos:
+        # Calcula o índice do quadro do meio
+        indice_quadro_meio = len(quadros_lidos) // 2
+        nome_arquivo_quadro_meio = 'Quadro_do_meio.jpg'
+        # Salva o quadro do meio como imagem
+        cv2.imwrite(nome_arquivo_quadro_meio, quadros_lidos[indice_quadro_meio])
 
-quadro_do_meio = len(quadros) // 2
-# Salvando a imagem do quadro do meio
-cv2.imwrite('Quadro_do_meio.jpg', quadros[quadro_do_meio])
-# Carrega a imagem do quadro do meio
-quadro_meio_img = cv2.imread('Quadro_do_meio.jpg')
+        # Carrega e exibe o quadro do meio no Colab
+        quadro_meio_para_exibir = cv2.imread(nome_arquivo_quadro_meio)
+        print("\nQuadro do meio:")
+        cv2_imshow(quadro_meio_para_exibir)
+    else:
+        print("Nenhum quadro foi lido do vídeo para análise.")
 
-# Exibe o quadro do meio
-print("Quadro do meio:")
-cv2_imshow(quadro_meio_img)
-
-print(f'Total dos quadros no video: {len(quadros)}')
+    # Exibe o total de quadros lidos
+    print(f'\nTotal de quadros lidos do vídeo: {len(quadros_lidos)}')
