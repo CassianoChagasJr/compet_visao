@@ -15,11 +15,12 @@ escritor = cv2.VideoWriter(
     (largura_v, altura_v),          # frameSize
 )
 
-n_quadros = 60                     # quadros a gerar
+n_quadros = 60                     # número de quadros
 for i in range(n_quadros):          
-    quadro = np.full((altura_v, largura_v, 3), 255, dtype=np.uint8)   # fundo branco
+    quadro = np.full((altura_quadro, largura_quadro, 3), 255, dtype=np.uint8)   # fundo branco
     # x avança um pouco a cada quadro -> dá a sensação de movimento
-    x = int(30 + (largura_v - 60) * i / n_quadros)
+    x = int(30 + (largura_quadro - 60) * i / n_quadros)
+    
     cv2.circle(
         quadro,
         (x, altura_v // 2),         # center: (x que avança, meio da altura)
