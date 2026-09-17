@@ -17,5 +17,10 @@ quadro_do_meio = len(quadros) // 2
 
 cv2.imwrite('Quadro_do_meio.jpg', quadros[quadro_do_meio])
 
-print('Total dos quadros no video: ', len(quadro))
+print(f'Total dos quadros no video: {len(quadro)}')
+
+# propriedades do video
+cap.get()
+
+print(f"propriedades do video: {cap.get()}")
 
